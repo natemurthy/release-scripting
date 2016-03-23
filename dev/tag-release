@@ -23,8 +23,16 @@ fail() {
     exit 1
 }
 
+reapply_snapshot_version() {
+    sed -i -e "s/$RELEASE_VERSION/$SNAPSHOT_VERSION/g" conf/application.conf
+    sed -i -e "s/$RELEASE_VERSION/$SNAPSHOT_VERSION/g" version.sbt
+    git add conf/application.conf version.sbt
+    git commit -m "MINOR: re-apply snapshot version to project"
+    git checkout develop && git merge master
+}
+
 publish_artifacts() {
-    "publish artifacts"
+    echo "publish artifacts"
 }
 
 tag_release() {
@@ -51,10 +59,10 @@ tag_release() {
     git tag -a v$RELEASE_VERSION -m "$RELEASE_VERSION"
     git push --follow-tags
     publish_artifacts
-    git checkout develop
+    reapply_snapshot_version
     git log --oneline --decorate | grep "tag: " | grep $RELEASE_VERSION
     curr_branch=`git name-rev --name-only HEAD`
-    echo -e $GRN_START"Successfully tagged release. Current branch: $curr_branch"$COLOR_END
+    echo -e $GRN_START"Successfully tagged release $RELEASE_VERSION. Current branch: $curr_branch"$COLOR_END
     exit 0
 }
 
