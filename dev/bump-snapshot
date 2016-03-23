@@ -47,7 +47,7 @@ bump_snapshot() {
     git checkout develop
     git log --oneline --decorate | grep $NEW_SNAPSHOT
     curr_branch=`git name-rev --name-only HEAD`
-    echo "Successful snapshot bump. Current branch: $curr_branch"
+    echo -e $GRN_START"Successful snapshot bump. Current branch: $curr_branch"$COLOR_END
     exit 0
 }
 

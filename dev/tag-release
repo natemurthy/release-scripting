@@ -24,11 +24,7 @@ fail() {
 }
 
 publish_artifacts() {
-    sbt projects
-    sbt 'project dgms-play' publish
-    sbt 'project dgms-pubsub' publish
-    sbt 'project dgms-toolbox' publish
-    sbt 'project dgms-util' publish
+    "publish artifacts"
 }
 
 tag_release() {
@@ -58,7 +54,7 @@ tag_release() {
     git checkout develop
     git log --oneline --decorate | grep "tag: " | grep $RELEASE_VERSION
     curr_branch=`git name-rev --name-only HEAD`
-    echo "Successfully tagged release. Current branch: $curr_branch"
+    echo -e $GRN_START"Successfully tagged release. Current branch: $curr_branch"$COLOR_END
     exit 0
 }
 
