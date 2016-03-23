@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-# A script for seting snapshots
+# A script for setting snapshots versions. All code committed to your
+# `develop` branch will be merged into `master` as a result of running
+# this script.
 
 [ $# -eq 0 ] && { echo "Usage: $0 [OLD_SNAPSHOT] [NEW_SNAPSHOT]"; exit 1; }
 
@@ -30,7 +32,7 @@ set_snapshot() {
     sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" version.sbt
     git diff README.md version.sbt conf/application.conf
     git add README.md version.sbt conf/application.conf
-    read -r -p "!! PUSH TO REMOTE !! Do the changes above look correct? [y/N] " response
+    read -r -p "!! PUSH TO REMOTE !! Do the changes above look correct? [y/n] " response
     if [[ $response =~ $YES_REGEX ]]
     then
         git status
@@ -40,7 +42,6 @@ set_snapshot() {
         echo "Undoing changes. Exiting script."
         exit 0
     fi
-    git status
     git commit -m "MINOR: set snapshot version to $NEW_SNAPSHOT"
     git checkout master && git merge develop
     git push
