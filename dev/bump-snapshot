@@ -7,21 +7,62 @@
 PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
 OLD_SNAPSHOT=$1
 NEW_SNAPSHOT=$2
+VER_REGEX='(([0-9]+(\.[0-9]+)*))'
+YES_REGEX='^([yY][eE][sS]|[yY])$'
 
 cd $PROJ_DIR
 
 LATEST_RELEASE="$(cut -d '"' -f2 < version.sbt)"
 
-echo "Valid semantic version: $NEW_SNAPSHOT"
-git checkout develop
-sed -i -e "s/$OLD_SNAPSHOT/$NEW_SNAPSHOT/g" README.md
-sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" conf/application.conf
-sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" version.sbt
-git diff README.md version.sbt conf/application.conf
-git add README.md version.sbt conf/application.conf
-git status
-git commit -m "MINOR: bump snapshot version to $NEW_SNAPSHOT"
-git checkout master && git merge develop
-git push
-snapshot_log=`git log --oneline --decorate | grep $NEW_SNAPSHOT`
-echo "Successful snapshot bump: $snapshot_log"
+RED_START='\e[31m'
+GRN_START='\e[32m'
+COLOR_END='\e[0m'
+
+fail() {
+    echo -e $RED_START"Failed to bump snapshot"$COLOR_END
+    exit 1
+}
+
+bump_snapshot() {
+    git checkout develop
+    sed -i -e "s/$OLD_SNAPSHOT/$NEW_SNAPSHOT/g" README.md
+    sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" conf/application.conf
+    sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" version.sbt
+    git diff README.md version.sbt conf/application.conf
+    git add README.md version.sbt conf/application.conf
+    read -r -p "!! PUSH TO REMOTE !! Do the changes above look correct? [y/N] " response
+    if [[ $response =~ $YES_REGEX ]]
+    then
+        git status
+    else
+        git reset
+        git checkout README.md version.sbt conf/application.conf
+        echo "Undoing changes. Exiting script."
+        exit 0
+    fi
+    git status
+    git commit -m "MINOR: bump snapshot version to $NEW_SNAPSHOT"
+    git checkout master && git merge develop
+    git push
+    git checkout develop
+    git log --oneline --decorate | grep $NEW_SNAPSHOT
+    curr_branch=`git name-rev --name-only HEAD`
+    echo "Successful snapshot bump. Current branch: $curr_branch"
+    exit 0
+}
+
+if [ $OLD_SNAPSHOT == $LATEST_RELEASE ]
+then
+    if [[ $NEW_SNAPSHOT =~ $VER_REGEX ]]
+    then
+        echo "Valid semantic version: $NEW_SNAPSHOT"
+        bump_snapshot
+    else
+        echo "Invalid semantic version: $NEW_SNAPSHOT"
+        fail
+    fi
+else
+    echo "$OLD_SNAPSHOT must match $LATEST_RELEASE in version.sbt"
+    fail
+fi
+
