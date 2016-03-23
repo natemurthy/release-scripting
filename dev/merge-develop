@@ -6,12 +6,14 @@ cd $PROJ_DIR
 YES_REGEX='^([yY][eE][sS]|[yY])$'
 RED_START='\e[31m'
 GRN_START='\e[32m'
+YLW_START='\e[33m'
 COLOR_END='\e[0m'
 
 git checkout develop 
-echo "The following files will be modified as a result of this merge:"
-git diff master --name-only
-read -r -p "!! PUSH TO REMOTE !! Are you sure you want to merge these changes into \`master\`? [y/N] " response
+echo "The following files have been modified:"
+diff=`git diff master --name-only`
+echo -e $YLW_START"$diff"$COLOR_END
+read -r -p "!! PUSH TO REMOTE !! Are you sure you want to merge these changes into \`master\`? [y/n] " response
 if [[ $response =~ $YES_REGEX ]]
 then
     git checkout master && git merge develop
@@ -19,8 +21,6 @@ then
     git checkout develop
     echo -e $GRN_START"Successfully merged \`develop\` into \`master\`."$COLOR_END
 else
-    git reset
-    git checkout README.md version.sbt conf/application.conf
-    echo "Undoing changes. Exiting script."
+    echo "Aborting merge for now"
     exit 0
 fi
