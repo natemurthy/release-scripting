@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
+cd $PROJ_DIR
+
+YES_REGEX='^([yY][eE][sS]|[yY])$'
+RED_START='\e[31m'
+GRN_START='\e[32m'
+COLOR_END='\e[0m'
+
+git checkout develop 
+echo "The following files will be modified as a result of this merge:"
+git diff master --name-only
+read -r -p "!! PUSH TO REMOTE !! Are you sure you want to merge these changes into \`master\`? [y/N] " response
+if [[ $response =~ $YES_REGEX ]]
+then
+    git checkout master && git merge develop
+    git push
+    git checkout develop
+    echo -e $GRN_START"Successfully merged \`develop\` into \`master\`."$COLOR_END
+else
+    git reset
+    git checkout README.md version.sbt conf/application.conf
+    echo "Undoing changes. Exiting script."
+    exit 0
+fi
