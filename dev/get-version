@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
+cd $PROJ_DIR
+VERSION="$(cut -d '"' -f2 < version.sbt)"
+echo $VERSION

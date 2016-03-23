@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# A script for tagging releases, publishing build artifacts for the provided
+# tagged release, and for pushing release tag to repository
+
+[ $# -eq 0 ] && { echo "Usage: $0 [SNAPSHOT_VERSION] [RELEASE_VERSION]"; exit 1; }
+
+PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
+SNAPSHOT_VERSION=$1
+RELEASE_VERSION=$2
+VER_REGEX='(([0-9]+(\.[0-9]+)*))'
+
+cd "$PROJ_DIR"
+
+VERSION_SBT="$(cut -d '"' -f2 < version.sbt)"
+
+fail() {
+    echo "Failed to tag release"
+    exit 1;
+}
+
+publish_artifacts() {
+    echo "publishing artifacts"
+}
+
+if [ "$SNAPSHOT_VERSION" ==  "$VERSION_SBT" ]; then
+    git checkout develop
+    if [[ $RELEASE_VERSION =~ $VER_REGEX ]]; then
+        echo "Valid semantic version: $RELEASE_VERSION";
+    else
+        echo "Invalid semantic version: $RELEASE_VERSION";
+        fail()
+    fi
+    new_readme="Latest on master: \`$SNAPSHOT_VERSION\`. Latest release tag: \`$RELEASE_VERSION\`"
+    sed -i -e "s/.*Latest on master.*/$new_readme/g" README.md
+    sed -i -e "s/$SNAPSHOT_VERSION/$RELEASE_VERSION/g" conf/application.conf
+    sed -i -e "s/$SNAPSHOT_VERSION/$RELEASE_VERSION/g" version.sbt
+    git diff README.md version.sbt conf/application.conf
+    git add README.md version.sbt conf/application.conf
+    git status
+    git commit -m "MINOR: set release version to $RELEASE_VERSION"
+    git checkout master && git merge develop
+    git tag -a v$RELEASE_VERSION -m "$RELEASE_VERSION"
+    git push --follow-tags
+    publish_artifacts()
+    tag_log=`git log --oneline --decorate | grep "tag: " | grep $RELEASE_VERSION`
+    echo "Successfully tagged release: $tag_log"
+    exit 0;
+else
+    echo "$SNAPSHOT_VERSION does not match $VERSION_SBT in version.sbt"
+    fail()
+fi
+
+
+

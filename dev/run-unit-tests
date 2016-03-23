@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
+cd "$PROJ_DIR"
+sbt clean coverage test
