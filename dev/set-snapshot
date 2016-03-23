@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A script for bumping snapshots
+# A script for seting snapshots
 
 [ $# -eq 0 ] && { echo "Usage: $0 [OLD_SNAPSHOT] [NEW_SNAPSHOT]"; exit 1; }
 
@@ -19,11 +19,11 @@ GRN_START='\e[32m'
 COLOR_END='\e[0m'
 
 fail() {
-    echo -e $RED_START"Failed to bump snapshot"$COLOR_END
+    echo -e $RED_START"Failed to set snapshot"$COLOR_END
     exit 1
 }
 
-bump_snapshot() {
+set_snapshot() {
     git checkout develop
     sed -i -e "s/$OLD_SNAPSHOT/$NEW_SNAPSHOT/g" README.md
     sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" conf/application.conf
@@ -41,13 +41,13 @@ bump_snapshot() {
         exit 0
     fi
     git status
-    git commit -m "MINOR: bump snapshot version to $NEW_SNAPSHOT"
+    git commit -m "MINOR: set snapshot version to $NEW_SNAPSHOT"
     git checkout master && git merge develop
     git push
     git checkout develop
     git log --oneline --decorate | grep $NEW_SNAPSHOT
     curr_branch=`git name-rev --name-only HEAD`
-    echo -e $GRN_START"Successfully bumped project to $NEW_SNAPSHOT. Current branch: $curr_branch"$COLOR_END
+    echo -e $GRN_START"Successfully set project to $NEW_SNAPSHOT. Current branch: $curr_branch"$COLOR_END
     exit 0
 }
 
@@ -56,7 +56,7 @@ then
     if [[ $NEW_SNAPSHOT =~ $VER_REGEX ]]
     then
         echo "Valid semantic version: $NEW_SNAPSHOT"
-        bump_snapshot
+        set_snapshot
     else
         echo "Invalid semantic version: $NEW_SNAPSHOT"
         fail
