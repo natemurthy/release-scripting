@@ -7,29 +7,21 @@
 PROJ_DIR="$(cd "`dirname $0`"/..; pwd)"
 OLD_SNAPSHOT=$1
 NEW_SNAPSHOT=$2
-VER_REGEX='(([0-9]+(\.[0-9]+)*))'
 
 cd $PROJ_DIR
 
 LATEST_RELEASE="$(cut -d '"' -f2 < version.sbt)"
 
-if [[ $NEW_SNPASHOT =~ $VER_REGEX ]]; then
-    echo "Valid semantic version: $NEW_SNAPSHOT"
-    git checkout develop
-    sed -i -e "s/$OLD_SNAPSHOT/$NEW_SNAPSHOT/g" README.md
-    sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" conf/application.conf
-    sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" version.sbt
-    git diff README.md version.sbt conf/application.conf
-    git add README.md version.sbt conf/application.conf
-    git status
-    git commit -m "MINOR: bump snapshot version to $NEW_SNAPSHOT"
-    git checkout master && git merge develop
-    git push
-    snapshot_log=`git log --oneline --decorate | grep $NEW_SNAPSHOT`
-    echo "Successful snapshot bump: $snapshot_log"
-    exit 0;
-else
-    echo "Invalid semantic version: $NEW_SNAPSHOT"
-    echo "Failed to bump snapshot"
-    exit 1;
-fi
+echo "Valid semantic version: $NEW_SNAPSHOT"
+git checkout develop
+sed -i -e "s/$OLD_SNAPSHOT/$NEW_SNAPSHOT/g" README.md
+sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" conf/application.conf
+sed -i -e "s/$LATEST_RELEASE/$NEW_SNAPSHOT/g" version.sbt
+git diff README.md version.sbt conf/application.conf
+git add README.md version.sbt conf/application.conf
+git status
+git commit -m "MINOR: bump snapshot version to $NEW_SNAPSHOT"
+git checkout master && git merge develop
+git push
+snapshot_log=`git log --oneline --decorate | grep $NEW_SNAPSHOT`
+echo "Successful snapshot bump: $snapshot_log"
