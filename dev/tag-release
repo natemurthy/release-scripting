@@ -16,7 +16,7 @@ VERSION_SBT="$(cut -d '"' -f2 < version.sbt)"
 
 fail() {
     echo "Failed to tag release"
-    exit 1;
+    exit 1
 }
 
 publish_artifacts() {
@@ -24,12 +24,12 @@ publish_artifacts() {
 }
 
 if [ "$SNAPSHOT_VERSION" ==  "$VERSION_SBT" ]; then
-    git checkout develop
+    git checkout develop;
     if [[ $RELEASE_VERSION =~ $VER_REGEX ]]; then
-        echo "Valid semantic version: $RELEASE_VERSION";
+        echo "Valid semantic version: $RELEASE_VERSION"
     else
-        echo "Invalid semantic version: $RELEASE_VERSION";
-        fail()
+        echo "Invalid semantic version: $RELEASE_VERSION"
+        fail
     fi
     new_readme="Latest on master: \`$SNAPSHOT_VERSION\`. Latest release tag: \`$RELEASE_VERSION\`"
     sed -i -e "s/.*Latest on master.*/$new_readme/g" README.md
@@ -42,13 +42,13 @@ if [ "$SNAPSHOT_VERSION" ==  "$VERSION_SBT" ]; then
     git checkout master && git merge develop
     git tag -a v$RELEASE_VERSION -m "$RELEASE_VERSION"
     git push --follow-tags
-    publish_artifacts()
+    publish_artifacts
     tag_log=`git log --oneline --decorate | grep "tag: " | grep $RELEASE_VERSION`
     echo "Successfully tagged release: $tag_log"
-    exit 0;
+    exit 0
 else
     echo "$SNAPSHOT_VERSION does not match $VERSION_SBT in version.sbt"
-    fail()
+    fail
 fi
 
 
